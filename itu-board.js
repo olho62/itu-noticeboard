@@ -286,7 +286,7 @@ function printNote(noteId) {
   </style></head><body>
   <h1>${subject}</h1><div class="meta">${author}</div>
   <div class="body">${body}</div>
-  <div class="foot">${expiry} · ITU Notice Board — QEQM Margate · tinyurl.com/qitu-nobo</div>
+  <div class="foot">${expiry} · ITU Notice Board — QEQM Margate · tinyurl.com/QNB-01</div>
   </body></html>`);
   w.document.close();
   w.onload=()=>{w.focus();w.print();};
