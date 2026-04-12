@@ -1,7 +1,7 @@
 /* ── CONFIGURATION ── */
 const SUPABASE_URL      = 'https://oyvfhuielzejcyqyxtld.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable__H3OrPNgHWsgoU2KLSc2Cg_jTRe947E';
-const ADMIN_PASSWORD    = 'QEQM_ITU_2024';
+const ADMIN_PASSWORD    = '4dminP4ss26!';
 const MAX_COMMENT       = 180;
 const EDIT_WINDOW_MS    = 15 * 60 * 1000;
 
