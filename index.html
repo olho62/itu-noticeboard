@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ITU Notice Board — QEQM Margate</title>
+
+  <!-- ─ Security ─ -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self';
+                 style-src 'self' https://fonts.googleapis.com;
+                 font-src https://fonts.gstatic.com;
+                 connect-src https://*.workers.dev;
+                 img-src 'self' data:;
+                 frame-ancestors 'none';
+                 base-uri 'self';
+                 form-action 'self'">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="itu-board.css">
+</head>
+<body>
+
+<!-- ─ PATIENT DATA WARNING ─ -->
+<div class="patient-warn" id="patientWarn">
+  ⚠ <strong>Do not post patient-identifiable information.</strong>
+  No names, dates of birth, NHS numbers, diagnoses or any patient data.
+  <button id="patientWarnClose">Dismiss</button>
+</div>
+
+<!-- ─ HEADER ─ -->
+<header>
+  <div class="header-left">
+    <span class="header-title">ITU Notice Board</span>
+    <span class="header-sub">QEQM Hospital, Margate · tinyurl.com/QNB-01</span>
+  </div>
+  <div class="header-right">
+    <span class="admin-chip" id="adminChip" style="display:none">ADMIN</span>
+    <button class="btn btn-primary" id="addBtn">+ Add note</button>
+    <button class="btn btn-secondary" id="archiveBtn">📁 Archive</button>
+    <button class="btn btn-secondary" id="adminBtn">🔑 Admin</button>
+  </div>
+</header>
+
+<!-- ─ ARCHIVE BANNER ─ -->
+<div class="archive-banner" id="archiveBanner" style="display:none">
+  📁 Viewing archived notes — <button class="btn btn-secondary" id="archiveBackBtn">← Back to board</button>
+</div>
+
+<!-- ─ BOARD ─ -->
+<main id="board">
+  <div class="board-message">
+    <div class="spinner"></div>
+    <p>Loading notices…</p>
+  </div>
+</main>
+
+<!-- ─ TOAST ─ -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════ OVERLAYS ═══════════════ -->
+
+<!-- Add Note -->
+<div class="overlay" id="addOverlay">
+  <div class="overlay-box">
+    <h2>New Notice</h2>
+    <div class="patient-warn-inline">
+      ⚠ Do <strong>not</strong> include any patient-identifiable information.
+    </div>
+    <label>Your name <input id="fName" type="text" maxlength="80" placeholder="e.g. Sarah N."></label>
+    <label>Subject <input id="fSubject" type="text" maxlength="120" placeholder="Brief subject line"></label>
+    <label>Message <textarea id="fBody" maxlength="1000" rows="5" placeholder="Notice content…"></textarea></label>
+    <label>Keep for
+      <select id="fRetention">
+        <option value="2">2 days</option>
+        <option value="4">4 days</option>
+        <option value="7" selected>1 week</option>
+        <option value="14">2 weeks</option>
+        <option value="30">1 month</option>
+      </select>
+    </label>
+    <div class="overlay-btns">
+      <button class="btn btn-secondary" id="addCancelBtn">Cancel</button>
+      <button class="btn btn-primary"   id="addSubmitBtn">Post notice</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deletion Request -->
+<div class="overlay" id="delOverlay">
+  <div class="overlay-box">
+    <h2>Request Deletion</h2>
+    <p>Deletion requests are reviewed by the admin. Please give a brief reason.</p>
+    <label>Reason <textarea id="fReason" maxlength="300" rows="3" placeholder="Why should this note be deleted?"></textarea></label>
+    <div class="overlay-btns">
+      <button class="btn btn-secondary" id="delCancelBtn">Cancel</button>
+      <button class="btn btn-primary"   id="delSubmitBtn">Send request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sticky Request -->
+<div class="overlay" id="stickyOverlay">
+  <div class="overlay-box">
+    <h2>Request Permanent Status</h2>
+    <p>Permanent notes do not expire. Requests are reviewed by the admin.</p>
+    <label>Reason <textarea id="fStickyReason" maxlength="300" rows="3" placeholder="Why should this note be permanent?"></textarea></label>
+    <div class="overlay-btns">
+      <button class="btn btn-secondary" id="stickyCancelBtn">Cancel</button>
+      <button class="btn btn-primary"   id="stickySubmitBtn">Send request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Note -->
+<div class="overlay" id="editOverlay">
+  <div class="overlay-box">
+    <h2>Edit Notice</h2>
+    <div class="patient-warn-inline">
+      ⚠ Do <strong>not</strong> include any patient-identifiable information.
+    </div>
+    <label>Subject <input id="fEditSubject" type="text" maxlength="120"></label>
+    <label>Message <textarea id="fEditBody" maxlength="1000" rows="5"></textarea></label>
+    <div class="overlay-btns">
+      <button class="btn btn-secondary" id="editCancelBtn">Cancel</button>
+      <button class="btn btn-primary"   id="editSubmitBtn">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="itu-board.js"></script>
+
+<!-- Patient warning dismiss -->
+<script>
+  (function() {
+    const warn = document.getElementById('patientWarn');
+    const btn  = document.getElementById('patientWarnClose');
+    if (sessionStorage.getItem('pw_dismissed')) warn.style.display = 'none';
+    btn.addEventListener('click', () => {
+      warn.style.display = 'none';
+      sessionStorage.setItem('pw_dismissed', '1');
+    });
+    // Archive back button
+    document.getElementById('archiveBackBtn').addEventListener('click', () => {
+      document.getElementById('archiveBtn').click();
+    });
+  })();
+</script>
+
+</body>
+</html>
